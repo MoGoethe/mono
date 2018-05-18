@@ -81,7 +81,7 @@ namespace System.IO {
 			Operation (object_op: (_, fsw) => {
 						if (!fsw.EnableRaisingEvents)
 							return;
-						fsw.DispatchEvents (action, args.Name, ref renamed);
+						Task.Run ( () => { fsw.DispatchEvents (action, args.Name, ref renamed); });
 						if (fsw.Waiting) {
 							fsw.Waiting = false;
 							System.Threading.Monitor.PulseAll (fsw);
@@ -95,8 +95,9 @@ namespace System.IO {
 
 			Operation (map_op: (in_map, out_map, event_map, _) => event_map.TryGetValue (sender, out handle));
 
-			Operation (object_op: (_, fsw) => fsw.DispatchErrorEvents (args),
-				handle: handle);
+			Operation (object_op: (_, fsw) => {
+					Task.Run ( () => { fsw.DispatchErrorEvents (args); });
+					}, handle: handle);
 		}
 
 		public object NewWatcher (M fsw)
